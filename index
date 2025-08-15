@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>VidScoop M.A — Web UI (Mock)</title>
+<style>
+  :root{
+    --bg:#0f1720;
+    --card:#12171d;
+    --muted:#9aa6b2;
+    --accent:#6C5CE7; /* اللون البنفسجي اللي اقترحته */
+    --accent-2:#00CEC9;
+    --text:#e6eef6;
+    --danger:#ff5c5c;
+  }
+  *{box-sizing:border-box;font-family: "Tajawal", system-ui, Arial, sans-serif}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#0b0f14 0%, #0f1720 100%);color:var(--text)}
+  .app{
+    width: 900px;
+    max-width:calc(100% - 30px);
+    margin:22px auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:14px;
+    box-shadow:0 6px 24px rgba(0,0,0,0.6);
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  /* TOP */
+  .top{display:flex;gap:12px;align-items:center;margin-bottom:10px;}
+  .col-left{flex:1}
+  label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px}
+  input[type="text"], .fake-select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,0.04);
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+    color:var(--text);
+    outline:none;
+    font-size:14px;
+  }
+  .row {display:flex;gap:8px;align-items:center;}
+  button.ctk{
+    background:var(--accent);
+    color:white;
+    border:none;
+    padding:10px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    box-shadow: 0 6px 18px rgba(108,92,231,0.18);
+  }
+  button.ctk.secondary{
+    background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.04);
+  }
+  button.ctk.red{background:var(--danger);box-shadow:none}
+
+  /* save folder */
+  .save-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .save-row input{flex:1}
+
+  /* mode radios */
+  .modes{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+  .radio{
+    padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);cursor:pointer;
+  }
+  .radio.active{background:linear-gradient(90deg, rgba(108,92,231,0.12), rgba(0,206,201,0.06));border-color:rgba(108,92,231,0.32)}
+
+  /* mid area */
+  .mid{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+  .thumb{
+    width:320px;height:180px;border-radius:8px;background:linear-gradient(180deg,#0a0d10,#0e1418);
+    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;border:1px solid rgba(255,255,255,0.03);
+  }
+  .info{flex:1;padding:8px}
+  .info .title{font-weight:700;margin-bottom:8px}
+  .info .meta{color:var(--muted);font-size:13px;margin-bottom:12px;white-space:pre-wrap}
+
+  /* progress area */
+  .progress-wrap{margin-bottom:12px}
+  .progress-bar{
+    width:100%;height:14px;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.02)
+  }
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .2s}
+  .progress-text{margin-top:6px;color:var(--muted);font-size:13px}
+
+  /* controls */
+  .controls{display:flex;gap:8px;align-items:center;justify-content:flex-start;margin-bottom:6px}
+  .status{margin-left:auto;color:var(--muted);font-size:13px}
+
+  /* footer small */
+  .small{font-size:12px;color:var(--muted)}
+
+  /* responsive */
+  @media (max-width:720px){
+    .mid{flex-direction:column;align-items:center}
+    .thumb{width:100%;height:200px}
+    .app{padding:12px}
+  }
+</style>
+</head>
+<body>
+<div class="app" role="application" aria-label="VidScoop Web UI">
+  <!-- TOP: URL + add -->
+  <div class="top">
+    <div class="col-left">
+      <label for="urlInput">Video / Playlist URL:</label>
+      <div class="row">
+        <input id="urlInput" type="text" placeholder="https://youtu.be/..." />
+        <button id="addBtn" class="ctk" style="width:110px">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- save folder -->
+  <div class="save-row">
+    <label style="width:110px;margin:0">Save folder:</label>
+    <input id="saveInput" type="text" value="~" />
+    <button id="browseBtn" class="ctk secondary" style="width:100px">Browse</button>
+  </div>
+
+  <!-- mode radios -->
+  <div class="modes" role="tablist" aria-label="Mode selection">
+    <div id="modeVideo" class="radio active" data-mode="video">Video</div>
+    <div id="modeAudio" class="radio" data-mode="audio">Audio (MP3)</div>
+    <div id="modeAuto" class="radio" data-mode="auto">Auto</div>
+  </div>
+
+  <!-- mid area -->
+  <div class="mid">
+    <div class="thumb" id="thumbBox">No thumbnail</div>
+    <div class="info">
+      <div class="title" id="infoTitle">No video info yet</div>
+      <div class="meta" id="infoMeta">Duration: 0:00</div>
+      <div class="small">Item <span id="idxText">0</span> of <span id="queueCount">0</span></div>
+    </div>
+  </div>
+
+  <!-- progress -->
+  <div class="progress-wrap">
+    <div class="progress-bar" aria-hidden="true"><div id="progressFill" class="progress-fill"></div></div>
+    <div class="progress-text" id="progressLabel">Progress: 0% | Waiting to start...</div>
+  </div>
+
+  <!-- controls -->
+  <div class="controls" role="group" aria-label="Controls">
+    <button id="startBtn" class="ctk">Start All</button>
+    <button id="pauseBtn" class="ctk secondary">Pause</button>
+    <button id="resumeBtn" class="ctk secondary">Resume</button>
+    <button id="cancelBtn" class="ctk red">Cancel</button>
+    <div class="status" id="statusLabel">Ready</div>
+  </div>
+
+  <div class="small">ملاحظة: هذه نسخة واجهة لتجربة الواجهات فقط — الربط مع السيرفر (yt-dlp / ffmpeg) يحتاج backend.</div>
+</div>
+
+<script>
+/*
+  VidScoop Web UI (Frontend mock)
+  - يحاكي وظائف add/start/pause/resume/cancel و clipboard detection
+  - مصمَّم ليطابق الواجهة الأصلية قدر الإمكان
+  - لتشغيل حقيقي: اربط الطلبات بنقاط API في السيرفر (شرح أسفل)
+*/
+
+/* ------------ عناصر DOM ------------ */
+const urlInput = document.getElementById('urlInput');
+const addBtn = document.getElementById('addBtn');
+const saveInput = document.getElementById('saveInput');
+const browseBtn = document.getElementById('browseBtn');
+const modeEls = document.querySelectorAll('.radio');
+const thumbBox = document.getElementById('thumbBox');
+const infoTitle = document.getElementById('infoTitle');
+const infoMeta = document.getElementById('infoMeta');
+const idxText = document.getElementById('idxText');
+const queueCount = document.getElementById('queueCount');
+const progressFill = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resumeBtn = document.getElementById('resumeBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const statusLabel = document.getElementById('statusLabel');
+
+let downloadQueue = []; // items: {title,url,thumbnail,duration}
+let workerQueue = [];
+let currentIdx = null;
+let isDownloading = false;
+let pauseFlag = false;
+let stopFlag = false;
+let simulatedProgressTimer = null;
+
+/* ------------ utilities ------------ */
+function secondsToTime(sec){
+  sec = Number(sec) || 0;
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = sec%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+}
+function setStatus(txt){ statusLabel.textContent = txt; }
+
+/* ------------ mode selection ------------ */
+modeEls.forEach(el=>{
+  el.addEventListener('click', ()=> {
+    modeEls.forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+  });
+});
+function getMode(){ return document.querySelector('.radio.active').dataset.mode; }
+
+/* ------------ add URL (محاكاة fetch info) ------------ */
+addBtn.addEventListener('click', ()=> handleAdd(urlInput.value.trim()));
+urlInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleAdd(urlInput.value.trim()); });
+
+async function handleAdd(url){
+  if(!url){ alert('أدخل رابط أولاً'); return; }
+  setStatus('Fetching info...');
+  // محاولة الحصول على thumbnail عبر oEmbed (محاولة) — قد تفشل بسبب CORS لبعض المصادر
+  let title = url;
+  let thumb = '';
+  let duration = 0;
+  try{
+    // Attempt oEmbed (YouTube, Vimeo, ...). Not guaranteed CORS-OK.
+    const oe = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    const r = await fetch(oe);
+    if(r.ok){
+      const j = await r.json();
+      title = j.title || title;
+      thumb = j.thumbnail_url || '';
+    } else {
+      // fallback: try extract id for youtu.be / youtube
+      const ytMatch = url.match(/(?:v=|youtu\\.be\\/)([A-Za-z0-9_-]{6,})/);
+      if(ytMatch){ thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`; }
+    }
+  }catch(e){
+    // ignore CORS errors -> show placeholder
+    const ytMatch = url.match(/(?:v=|youtu\\.be\\/)([A-Za-z0-9_-]{6,})/);
+    if(ytMatch){ thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`; }
+  }
+
+  // Push to queue
+  const item = { title: title, url: url, thumbnail: thumb, duration: duration };
+  downloadQueue.push(item);
+  workerQueue.push(downloadQueue.length - 1);
+  queueCount.textContent = downloadQueue.length;
+  setStatus(`Added 1 item`);
+  // update UI preview to show last added
+  showThumbnailInfo(item.thumbnail, item.title, item.duration, `Item ${downloadQueue.length} of ${downloadQueue.length}`);
+}
+
+/* ------------ show thumbnail/info ------------- */
+function showThumbnailInfo(thumbnail, title, duration, idx_text){
+  if(thumbnail){
+    thumbBox.style.backgroundImage = `url(${thumbnail})`;
+    thumbBox.style.backgroundSize = 'cover';
+    thumbBox.style.backgroundPosition = 'center';
+    thumbBox.textContent = '';
+  } else {
+    thumbBox.style.backgroundImage = 'none';
+    thumbBox.textContent = 'No thumbnail';
+  }
+  infoTitle.textContent = title || 'Unknown';
+  infoMeta.textContent = `Duration: ${secondsToTime(duration)}`;
+  idxText.textContent = (downloadQueue.length ? downloadQueue.length : 0);
+}
+
+/* ------------ Start / worker simulation ------------ */
+startBtn.addEventListener('click', ()=> {
+  if(isDownloading){ alert('Download in progress.'); return; }
+  if(workerQueue.length === 0){ alert('لا يوجد عناصر. أضف رابط أولاً.'); return; }
+  // In real usage: call backend /api/start with the queue and save folder
+  setStatus('Worker started...');
+  isDownloading = true;
+  pauseFlag = false;
+  stopFlag = false;
+  runWorker(saveInput.value || '~');
+});
+
+function runWorker(saveFolder){
+  // sequentially process indices in workerQueue
+  if(workerQueue.length === 0){ isDownloading = false; setStatus('All done'); progressFill.style.width='0%'; progressLabel.textContent='Progress: 0%'; return; }
+  const idx = workerQueue.shift();
+  if(idx<0 || idx >= downloadQueue.length){ runWorker(saveFolder); return; }
+  currentIdx = idx;
+  const item = downloadQueue[idx];
+  showThumbnailInfo(item.thumbnail, item.title, item.duration, `Item ${idx+1} of ${downloadQueue.length}`);
+  simulateDownload(item, saveFolder).then(()=>{
+    if(stopFlag){ isDownloading=false; setStatus('Cancelled'); progressLabel.textContent='Cancelled'; return; }
+    // next
+    setTimeout(()=> runWorker(saveFolder), 300);
+  }).catch(err=>{
+    isDownloading=false;
+    setStatus('Error');
+    alert('Download error: ' + err);
+  });
+}
+
+/* simulate download with progress updates */
+function simulateDownload(item, saveFolder){
+  return new Promise((resolve, reject)=>{
+    let p = 0;
+    setStatus(`Starting: ${item.title}`);
+    progressFill.style.width = '0%';
+    progressLabel.textContent = 'Progress: 0% | Starting...';
+    simulatedProgressTimer = setInterval(()=>{
+      if(stopFlag){ clearInterval(simulatedProgressTimer); progressFill.style.width='0%'; resolve(); return; }
+      if(pauseFlag){ setStatus('Paused'); return; }
+      p += (Math.random()*6 + 4); // +4..10%
+      if(p >= 100){ p = 100; clearInterval(simulatedProgressTimer); progressFill.style.width = '100%'; progressLabel.textContent = 'Progress: 100% | Done'; setStatus(`Finished: ${item.title}`); setTimeout(resolve, 600); return; }
+      progressFill.style.width = p + '%';
+      progressLabel.textContent = `Progress: ${Math.floor(p)}% | ${(Math.random()*2+0.5).toFixed(2)} MB/s | ETA: ${Math.max(1, Math.floor((100-p)/8))}s`;
+    }, 600);
+  });
+}
+
+/* ------------ pause / resume / cancel ------------ */
+pauseBtn.addEventListener('click', ()=> {
+  if(!isDownloading){ alert('No active download.'); return; }
+  pauseFlag = true;
+  setStatus('Pausing...');
+});
+resumeBtn.addEventListener('click', ()=> {
+  if(isDownloading && !pauseFlag){ alert('Already downloading.'); return; }
+  if(!isDownloading && downloadQueue.length === 0){ alert('Queue empty.'); return; }
+  pauseFlag = false;
+  if(!isDownloading){
+    // resume worker with current index
+    setStatus('Resuming...');
+    isDownloading = true;
+    workerQueue.unshift(currentIdx !== null ? currentIdx : 0);
+    runWorker(saveInput.value || '~');
+  } else {
+    setStatus('Resumed');
+  }
+});
+cancelBtn.addEventListener('click', ()=> {
+  if(!isDownloading){ alert('No active download.'); return; }
+  if(!confirm('Cancel current download?')) return;
+  stopFlag = true;
+  pauseFlag = false;
+  setStatus('Cancelling...');
+});
+
+/* ------------ clipboard monitor (يحاول يقرأ الحافظة) ------------ */
+let lastClipboard = '';
+async function clipboardWorker(){
+  try{
+    const text = await navigator.clipboard.readText();
+    if(text && text !== lastClipboard){
+      lastClipboard = text;
+      // basic URL detection
+      if(/(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|tiktok\.com|vimeo\.com|facebook\.com|instagram\.com)/i.test(text)){
+        const use = confirm('رابط مدعوم تم نسخه. هل تود لصقه في الحقل؟\n' + text);
+        if(use){
+          urlInput.value = text;
+        }
+      }
+    }
+  }catch(e){
+    // Clipboard API may be blocked without user gesture; ignore silently
+  }
+}
+setInterval(clipboardWorker, 2000);
+
+/* ------------ Browse (محاكاة اختيار مجلد) ------------ */
+browseBtn.addEventListener('click', ()=> {
+  // المتصفح لا يسمح باختيار مجلد للكتابة — نعرض نافذة وهمية للاختبار
+  const folder = prompt('Simulate choose save folder (ex: /home/user/Downloads):', saveInput.value || '~');
+  if(folder !== null) saveInput.value = folder;
+});
+
+/* ------------ keyboard shortcuts (optional) ------------ */
+document.addEventListener('keydown',(e)=>{
+  if(e.ctrlKey && e.key==='Enter'){ startBtn.click(); }
+});
+
+/* ------------ Integration notes (see below) ------------ */
+</script>
+</body>
+</html>
